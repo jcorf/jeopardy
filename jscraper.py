@@ -68,12 +68,11 @@ class Scraper:
                 self.clue_images.append(x.get('id'))
 
     def __get_clue_ids(self):
-        self.clue_ids = [self.get_clue_id(i, j, mode) for mode in ["J", "DJ"] for i in range(1, 7) for j in range(1, 6)]
-        self.clue_ids.append("clue_FJ")
-        # for mode in ["J","DJ"]:
-        #     for i in range(1,7):
-        #         for j in range(1,6):
-        #             self.clself.get_clue_id(i,j,mode)
+        self.clue_ids = []
+        for event_tag in self.soup.findAll(onmouseout=True):
+            tag = event_tag['onmouseover'].strip("toggle(").split(",")[0].strip("'")
+            self.clue_ids.append(tag)
+
 
     def __get_daily_doubles(self):
         self.daily_doubles = []

@@ -25,6 +25,7 @@ def insert_clues(link, season):
         mongo.insert_clue(clue_info)
 
 
+
 def insert_season(s):
     season = str(s)
 
@@ -33,7 +34,9 @@ def insert_season(s):
 
     for game in soup.find_all("tr"):
         link = game.find("a").get("href")
+        print("started season", season, "game", link[-4:])
         insert_clues(link, s)
+        print("completed season", season, "game", link[-4:])
         time.sleep(60)  # not to overload; wait 60 seconds per game
 
 
@@ -44,3 +47,5 @@ def main():
 
     for i in range(32, 37):
         insert_season(i)
+
+main()

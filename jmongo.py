@@ -12,8 +12,7 @@ class JMongo:
         self.shutdown()
 
     def insert_clue(self, clue_info):
-        id = self.collection.insert_one(clue_info).inserted_id
-        print(id)
+        self.collection.insert_one(clue_info)
 
     def delete_all(self):
         self.collection.drop()
