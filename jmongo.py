@@ -1,21 +1,21 @@
-import jscraper
 import pymongo as py
 
 
 class JMongo:
     def __init__(self, database, collection):
-        self.client = py.MongoClient()
-        self.db = self.client.get_database(database)
-
-        if collection in self.db.collection_names():
-            self.collection = self.db.get_collection(collection)
-        else:
-            self.collection = self.db.create_collection(collection)
+        self.client = py.MongoClient("mongodb://localhost:27017/")
+        self.db = self.client[database]
+        self.collection = self.db[collection]
+        print(self.db.collection_names())
 
     def shutdown(self):
         self.shutdown()
 
-    def insert_clue(self):
-        self.collection.insert()
+    def insert_clue(self, clue_info):
+        id = self.collection.insert_one(clue_info).inserted_id
+        print(id)
+
+    def delete_all(self):
+        self.collection.drop()
 
 
