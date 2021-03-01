@@ -14,6 +14,9 @@ class JMongo:
     def insert_clue(self, clue_info):
         self.collection.insert_one(clue_info)
 
+    def update_set(self, query, update):
+        self.collection.update_many(query, update)
+
     def delete_all(self):
         self.collection.drop()
 

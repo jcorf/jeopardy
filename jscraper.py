@@ -46,7 +46,7 @@ class Scraper:
         for event_tag in self.soup.findAll(onmouseout=True):
             tag = event_tag['onmouseover'].strip("toggle(").split(",")[0].strip("'")
             clue_answer = bs(event_tag["onmouseover"], "html.parser")
-            if tag == "clue_FJ":
+            if tag == "clue_FJ" or tag == "clue_TB":
                 clue_answer = bs(event_tag["onmouseover"], "html.parser")
                 self.answers[tag] = clue_answer.find('em').get_text()
             else:
@@ -111,6 +111,8 @@ class Scraper:
         clue_id = self.get_clue_id(category_idx, clue_idx, mode)
         if mode == "FJ":
             return self.questions["clue_FJ"]
+        elif mode == "TB":
+            return self.questions["clue_TB"]
         else:
             clue = self.soup.find_all('td', id=clue_id)
             if len(clue) == 0:
@@ -119,8 +121,10 @@ class Scraper:
                 return clue[0].get_text()
 
     def get_clue_by_cid(self, clue_id):
-        if clue_id.find("FJ") >= 0:
+        if self.is_FJ_clue(clue_id):
             return self.get_FJ_clue()
+        elif self.is_TB_clue(clue_id):
+            return self.get_TB_clue()
         else:
             args = clue_id.split("_")
             return self.get_clue(args[2], args[3], args[1])
@@ -135,6 +139,8 @@ class Scraper:
         """Returns the answer for the given category index(1-6), clue index(1-6), and mode("J","DJ","FJ") """
         if mode == "FJ":
             return self.answers["clue_FJ"]
+        elif mode == "TB":
+            return self.answers["clue_TB"]
         else:
             if self.valid_clue(category_idx, clue_idx, mode):
                 clue_id = self.get_clue_id(category_idx, clue_idx, mode)
@@ -143,8 +149,10 @@ class Scraper:
                 return "Invalid Clue Id"
 
     def get_answer_by_cid(self, clue_id):
-        if clue_id.find("FJ") >= 0:
+        if self.is_FJ_clue(clue_id):
             return self.get_FJ_answer()
+        elif self.is_TB_clue(clue_id):
+            return self.get_TB_answer()
         else:
             args = clue_id.split("_")
             return self.get_answer(args[2], args[3], args[1])
@@ -181,12 +189,20 @@ class Scraper:
     def get_FJ_answer(self):
         return self.answers["clue_FJ"]
 
+    def get_TB_clue(self):
+        return self.questions["clue_TB"]
+
+    def get_TB_answer(self):
+        return self.answers["clue_TB"]
+
     def get_category(self, idx, mode):
         index = int(idx)
         if mode == "FJ":
             return self.categories[12]
         elif mode == "DJ":
             return self.categories[index - 1 + 6]
+        elif mode == "TB":
+            return self.categories[13]
         else:
             return self.categories[index - 1]
 
@@ -200,7 +216,7 @@ class Scraper:
         return self.clue_ids
 
     def is_daily_double(self, category_idx, clue_idx, mode):
-        if mode == "FJ":
+        if mode == "FJ" or mode == "TB":
             return False
         else:
             clue_id = self.get_clue_id(category_idx, clue_idx, mode)
@@ -213,14 +229,14 @@ class Scraper:
         return self.daily_doubles
 
     def get_category_idx(self, clue_id):
-        if self.is_FJ_clue(clue_id):
+        if self.is_FJ_clue(clue_id) or self.is_TB_clue(clue_id):
             return -1
         else:
             args = clue_id.split("_")
             return int(args[2])
 
     def get_clue_idx(self, clue_id):
-        if self.is_FJ_clue(clue_id):
+        if self.is_FJ_clue(clue_id) or self.is_TB_clue(clue_id):
             return -1
         else:
             args = clue_id.split("_")
@@ -229,18 +245,20 @@ class Scraper:
     def get_clue_mode(self, clue_id):
         if self.is_FJ_clue(clue_id):
             return "FJ"
+        elif self.is_TB_clue(clue_id):
+            return "TB"
         else:
             args = clue_id.split("_")
             return args[1]
 
     def get_value_by_cid(self, clue_id):
-        if self.is_FJ_clue(clue_id):
+        if self.is_FJ_clue(clue_id) or self.is_TB_clue(clue_id):
             return 0
         else:
             return self.clue_values[clue_id]
 
     def get_value(self, category_idx, clue_idx, mode):
-        if mode == "FJ":
+        if mode == "FJ" or mode == "TB":
             return 0
         else:
             clue_id = self.get_clue_id(category_idx, clue_idx, mode)
@@ -255,9 +273,21 @@ class Scraper:
     def is_FJ_clue(self, clue_id):
         return clue_id.find("FJ") >= 0
 
+    def is_TB_clue(self, clue_id):
+        return clue_id.find("TB") >= 0
+
     def is_triple_stumper(self, category_idx, clue_idx, mode):
         if mode == "FJ":
             return "clue_FJ" in self.triple_stumpers
+        elif mode == "TB":
+            return "clue_TB" in self.triple_stumpers
         else:
             clue_id = self.get_clue_id(category_idx, clue_idx, mode)
             return clue_id in self.triple_stumpers
+
+    def is_tournament(self):
+        return self.soup.find(id="game_comments").get_text().find('final') >= 0
+
+    def get_tournament(self):
+        return self.soup.find(id="game_comments").get_text()
+
